@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if editar %}
+        Editar Conta
+    {% else %}
+        Minha Biblio
+    {% endif %}
+{% endblock %}
+
+{% block header %}
+    <h1>
+        {% if editar %}
+            Editar meus dados
+        {% else %}
+            Cadastrar conta
+        {% endif %}
+    </h1>
+{% endblock %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data" class="usuario-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">
+            {% if editar %}
+                Salvar alterações
+            {% else %}
+                Cadastrar
+            {% endif %}
+        </button>
+        {% if editar %}
+            <a href="{% url 'usuario_exibir' usuario.id %}" class="btn">Cancelar</a>
+        {% endif %}
+    </form>
+{% endblock %}

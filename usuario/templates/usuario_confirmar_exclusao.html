@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Confirmar Exclusão de Perfil
+{% endblock %}
+
+{% block header %}
+    <h1>Excluir Perfil</h1>
+{% endblock %}
+
+{% block content %}
+    <div class="usuario-form" style="max-width: 400px; margin: 2rem auto;">
+        <p>Tem certeza que deseja excluir seu perfil (<strong>{{ usuario.user.get_full_name|default:usuario.user.username }}</strong>)? Esta ação não pode ser desfeita.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn" style="background: #a94442; color: #fff;">Confirmar Exclusão</button>
+            <a href="{% url 'usuario_exibir' usuario.id %}" class="btn">Cancelar</a>
+        </form>
+    </div>
+{% endblock %}

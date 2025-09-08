@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Minha Biblio
+{% endblock %}
+
+{% block header %}
+    <h1>Meus dados</h1>
+{% endblock %}
+
+{% block content %}
+<div class="usuario-dados-card">
+    <div class="usuario-dados-header">
+        {% if usuario.imagem %}
+            <img src="{{ usuario.imagem.url }}" alt="Imagem do usuário" class="usuario-dados-avatar">
+        {% else %}
+            <span class="material-icons usuario-dados-avatar" style="font-size:80px;">account_circle</span>
+        {% endif %}
+        <div>
+            <h2>{{ usuario.user.first_name }} {{ usuario.user.last_name }}</h2>
+            <p class="usuario-dados-email">{{ usuario.user.email }}</p>
+        </div>
+    </div>
+    <ul class="usuario-dados-list">
+        <li><strong>RA:</strong> {{ usuario.ra }}</li>
+        <li><strong>Turma:</strong> {{ usuario.turma.nome }} ({{ usuario.turma.periodo }})</li>
+        <li><strong>Telefone:</strong> {{ usuario.telefone }}</li>
+    </ul>
+    <div class="usuario-dados-actions">
+        <a href="{% url 'usuario_atualizar' usuario.id %}" class="btn">Editar meus dados</a>
+        <form method="post" action="{% url 'usuario_excluir' usuario.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja excluir seu perfil? Esta ação não pode ser desfeita.');">
+                Excluir perfil
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

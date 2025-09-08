@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Confirmar Exclusão
+{% endblock %}
+
+{% block header %}
+    <h1>Confirmar Exclusão de Turma</h1>
+{% endblock %}
+
+{% block content %}
+    <p>Tem certeza que deseja excluir a turma <strong>{{ turma.nome }}</strong> ({{ turma.periodo }})?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Confirmar Exclusão</button>
+        <a href="{% url 'home' %}">Cancelar</a>
+    </form>
+{% endblock %}

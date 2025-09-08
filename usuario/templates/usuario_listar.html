@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Usuários
+{% endblock %}
+
+{% block header %}
+    <h1>Usuários cadastrados</h1>
+{% endblock %}
+
+{% block content %}
+<div class="listar-card">
+    <table class="listar-table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Perfil</th>
+                <th>Turma</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.user.first_name }} {{ usuario.user.last_name }}</td>
+                <td>{{ usuario.user.email }}</td>
+                <td>{{ usuario.get_perfil_display }}</td>
+                <td>
+                    {% if usuario.turma %}
+                        {{ usuario.turma.nome }} ({{ usuario.turma.periodo }})
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'usuario_exibir' usuario.id %}" title="Ver">
+                        <span class="material-icons">visibility</span>
+                    </a>
+                    <a href="{% url 'usuario_atualizar' usuario.id %}" title="Editar">
+                        <span class="material-icons">edit</span>
+                    </a>
+                    <a href="{% url 'usuario_excluir' usuario.id %}" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir este usuário?');">
+                        <span class="material-icons">delete</span>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">Nenhum usuário cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

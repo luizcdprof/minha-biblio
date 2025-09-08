@@ -1,0 +1,35 @@
+{% load static %}
+<nav class="navbar">
+    <!-- Logotipo à esquerda -->
+    <div class="navbar-logo">
+        <a href="{% url 'home' %}">
+            <img src="{% static 'minha-biblio.png' %}" alt="Logo" class="logo-img">
+        </a>
+    </div>
+    <!-- Navegação à direita -->
+    <div class="navbar-nav">
+        {% if user.is_authenticated %}
+            <div class="navbar-user">
+                {% if user.usuario_user_set.imagem %}
+                    <img src="{{ user.usuario_user_set.imagem.url }}" alt="Avatar" class="user-avatar">
+                {% else %}
+                    <span class="material-icons user-avatar">account_circle</span>
+                {% endif %}
+                <button id="user-btn" class="user-btn">
+                    {{ user.get_full_name|default:user.username }}
+                </button>
+                <div id="user-dropdown" class="user-dropdown">
+                    <a href="{% url 'usuario_exibir_logado' %}">Ver perfil</a>
+                    {% if user.usuario_user_set.perfil == 'bibliotecario' %}
+                        <a href="{% url 'turma_listar' %}">Turmas</a>
+                        <a href="{% url 'usuario_listar' %}">Usuários</a>
+                    {% endif %}
+                    <a href="{% url 'usuario_logout' %}">Sair</a>
+                </div>
+            </div>
+        {% else %}
+            <a href="{% url 'usuario_login' %}" class="navbar-link">Login</a>
+            <a href="{% url 'usuario_cadastrar' %}" class="navbar-link">Cadastrar</a>
+        {% endif %}
+    </div>
+</nav>
