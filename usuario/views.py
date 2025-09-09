@@ -102,6 +102,7 @@ def usuario_exibir(request, id=None):
     return render(request, 'usuario_exibir.html', {'usuario': usuario})
 
 @user_passes_test(is_bibliotecario)
+@login_required
 @csrf_exempt  # REMOVER DA PRODUÇÃO - USAR EM DEBUG APENAS
 def usuario_listar(request):
     usuarios = Usuario.objects.all()
@@ -165,6 +166,7 @@ def turma_cadastrar(request):
     return render(request, 'turma_cadastrar.html', {'form': form})
 
 @user_passes_test(is_bibliotecario)
+@login_required
 def turma_editar(request, id):
     turma = get_object_or_404(Turma, id=id)
     if request.method == 'POST':
@@ -180,6 +182,7 @@ def turma_editar(request, id):
         form = TurmaForm(instance=turma)
     return render(request, 'turma_cadastrar.html', {'form': form, 'editar': True})
 
+@user_passes_test(is_bibliotecario)
 @login_required
 def turma_excluir(request, id):
     turma = get_object_or_404(Turma, id=id)
@@ -190,6 +193,7 @@ def turma_excluir(request, id):
         return render(request, 'turma_listar.html', {'turmas': turmas})
     return render(request, 'turma_confirmar_exclusao.html', {'turma': turma})
 
+@user_passes_test(is_bibliotecario)
 @login_required
 def turma_listar(request):
     turmas = Turma.objects.all()
