@@ -4,6 +4,8 @@ from .forms import UsuarioForm, TurmaForm, LoginForm
 from .models import Turma, Usuario
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, logout, authenticate
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt # REMOVER DA PRODUÇÃO - USAR EM DEBUG APENAS
 
 # Create your views here.
 def home_view(request):
@@ -12,18 +14,32 @@ def home_view(request):
 def is_bibliotecario(user):
     return hasattr(user, 'usuario_user_set') and user.usuario_user_set.perfil == 'bibliotecario'
 
+@csrf_exempt  # REMOVER DA PRODUÇÃO - USAR EM DEBUG APENAS
 def usuario_login(request):
     form = LoginForm(request.POST or None)
+
     if request.method == 'POST':
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             user = authenticate(request, username=email, password=password)
+            
             if user is not None:
                 login(request, user)
+
+                # Resposta para requisição AJAX (JSON)
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True, 'message': 'Login realizado com sucesso!'})
+
+                # Resposta para navegador (HTML)
                 messages.success(request, 'Login realizado com sucesso!')
                 return redirect('usuario_exibir_logado')
             else:
+                # Resposta para requisição AJAX (JSON)
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': 'E-mail ou senha inválidos.'})
+
+                # Resposta para navegador (HTML)
                 messages.error(request, 'E-mail ou senha inválidos.')
     return render(request, 'usuario_login.html', {'form': form})
 
@@ -48,17 +64,65 @@ def usuario_cadastrar(request):
     return render(request, 'usuario_cadastrar.html', {'form': form})
 
 @login_required
+@csrf_exempt  # REMOVER DA PRODUÇÃO - USAR EM DEBUG APENAS
 def usuario_exibir(request, id=None):
-    #usuario = get_object_or_404(Usuario, id=id)
+    usuario = request.user.usuario_user_set  # usuário logado
+
     if id:
-        usuario = get_object_or_404(Usuario, id=id)
-    else:
-        usuario = request.user.usuario_user_set  # usuário logado
+        if not is_bibliotecario(request.user) and usuario.id != id:
+            # Resposta para requisição AJAX (JSON)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse(
+                    {'success': False, 'message': 'Você não tem permissão para ver este perfil.'},
+                    status=403 # Retorna status HTTP 403 Forbidden
+                )
+            
+            # Resposta para navegador (HTML)
+            messages.error(request, 'Você não tem permissão para ver este perfil.')
+            return redirect('home')
+        else:
+            usuario = get_object_or_404(Usuario, id=id)
+
+    # Resposta para requisição AJAX (JSON)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Converte o objeto de usuário em um dicionário para serializar
+        usuario_data = {
+            'id': usuario.id,
+            'username': usuario.user.username,
+            'email': usuario.user.email,
+            'perfil': usuario.perfil,
+            'ra': usuario.ra,
+            'telefone': usuario.telefone,
+            'turma_nome': usuario.turma.nome if usuario.turma else None,
+            'turma_periodo': usuario.turma.periodo if usuario.turma else None,
+        }
+        return JsonResponse({'success': True, 'usuario': usuario_data})
+
+    # Resposta para navegador (HTML)
     return render(request, 'usuario_exibir.html', {'usuario': usuario})
 
 @user_passes_test(is_bibliotecario)
+@csrf_exempt  # REMOVER DA PRODUÇÃO - USAR EM DEBUG APENAS
 def usuario_listar(request):
     usuarios = Usuario.objects.all()
+
+    # Resposta para requisição AJAX (JSON)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        usuarios_data = []
+        for usuario in usuarios:
+            usuarios_data.append({
+                'id': usuario.id,
+                'username': usuario.user.username,
+                'email': usuario.user.email,
+                'perfil': usuario.perfil,
+                'ra': usuario.ra,
+                'telefone': usuario.telefone,
+                'turma_nome': usuario.turma.nome if usuario.turma else None,
+                'turma_periodo': usuario.turma.periodo if usuario.turma else None,
+            })
+        return JsonResponse({'success': True, 'usuarios': usuarios_data})
+    
+    # Resposta para navegador (HTML)
     return render(request, 'usuario_listar.html', {'usuarios': usuarios})
 
 @login_required

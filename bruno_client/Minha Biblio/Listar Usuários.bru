@@ -1,0 +1,19 @@
+meta {
+  name: Listar Usuários
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}usuario/listar
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Requested-With: XMLHttpRequest
+}
+
+settings {
+  encodeUrl: true
+}

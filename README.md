@@ -48,3 +48,9 @@ Um WebApp em Django para gerenciamento de biblioteca pessoal. Esse repositório 
     * python manage.py migrate
 * criado o superuser
     * python manage.py createsuperuser
+
+# Incluindo adaptações para testes do backend
+* Alterações comentadas nas views login e exibir
+
+# Incluindo projeto do Bruno API Client
+* adicionada a pasta bruno_client ao projeto
