@@ -9,10 +9,12 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post" class="login-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn">Entrar</button>
-    </form>
-    <p>Não tem uma conta? <a href="{% url 'usuario_cadastrar' %}">Cadastre-se</a></p>
+    <div class="content">
+        <form method="post" class="login-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn">Entrar</button>
+        </form>
+        <p>Não tem uma conta? <a href="{% url 'usuario_cadastrar' %}">Cadastre-se</a></p>
+    </div>
 {% endblock %}
