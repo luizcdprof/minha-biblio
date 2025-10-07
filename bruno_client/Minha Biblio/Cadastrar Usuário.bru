@@ -1,0 +1,32 @@
+meta {
+  name: Cadastrar Usuário
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseURL}}usuario/cadastrar/
+  body: formUrlEncoded
+  auth: inherit
+}
+
+headers {
+  X-Requested-With: XMLHttpRequest
+  Content-Type: application/json
+}
+
+body:form-urlencoded {
+  id: 10
+  username: rato
+  email: rato@gmail.com
+  ra: 132465798
+  telefone: 11321654987
+  turma: 1
+  perfil: usuario
+  first_name: rato
+  last_name: de biblioteca
+}
+
+settings {
+  encodeUrl: true
+}

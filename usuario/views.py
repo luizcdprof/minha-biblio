@@ -5,6 +5,7 @@ from .models import Turma, Usuario
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, logout, authenticate
 from django.http import JsonResponse
+import json
 from django.views.decorators.csrf import csrf_exempt # REMOVER DA PRODUÇÃO - USAR EM DEBUG APENAS
 
 # Create your views here.
@@ -49,18 +50,70 @@ def usuario_logout(request):
     messages.success(request, 'Logout realizado com sucesso!')
     return redirect('home')
 
+@csrf_exempt  # REMOVER DA PRODUÇÃO - USAR EM DEBUG APENAS
 def usuario_cadastrar(request):
+    """
+    Suporta:
+    - requisições normais de formulário (navegador, incluindo multipart/form-data para upload de imagem)
+    - requisições JSON (cliente REST como o Bruno) com os mesmos campos do formulário
+
+    Mantém o comportamento do navegador (mensagens + render) e retorna JSON para clientes REST.
+    """
+    # Detecta se o cliente espera/responde JSON (XMLHttpRequest ou content-type application/json)
+    is_api = request.headers.get('x-requested-with') == 'XMLHttpRequest' or (request.content_type or '').startswith('application/json')
+
     if request.method == 'POST':
-        form = UsuarioForm(request.POST, request.FILES)
+        # Se veio JSON, parseia e monta os dados para o form
+        if (request.content_type or '').startswith('application/json'):
+            try:
+                payload = json.loads(request.body.decode('utf-8') or '{}')
+            except Exception:
+                return JsonResponse({'success': False, 'message': 'JSON inválido.'}, status=400)
+
+            # O UsuarioForm espera campos como: first_name, last_name, email, password, perfil, imagem, ra, turma, telefone
+            # Aqui assumimos que o cliente enviou chaves compatíveis. Para imagem via REST, use form-data (não JSON).
+            form = UsuarioForm(payload)
+        else:
+            form = UsuarioForm(request.POST, request.FILES)
+
         if form.is_valid():
             usuario = form.save()
-            login(request, usuario.user)  # loga o usuário automaticamente
+            # Loga o usuário automaticamente (comporta-se como submissão do navegador)
+            try:
+                login(request, usuario.user)
+            except Exception:
+                # não falhar se o login não funcionar em ambiente sem sessão
+                pass
+
+            if is_api:
+                usuario_data = {
+                    'id': usuario.id,
+                    'username': usuario.user.username,
+                    'email': usuario.user.email,
+                    'perfil': usuario.perfil,
+                    'ra': usuario.ra,
+                    'telefone': usuario.telefone,
+                    'turma': usuario.turma.id if usuario.turma else None,
+                }
+                return JsonResponse({'success': True, 'usuario': usuario_data}, status=201)
+
             messages.success(request, 'Usuário cadastrado com sucesso!')
             return render(request, 'usuario_exibir.html', {'usuario': usuario})
         else:
+            # Erros diferentes para API e navegador
+            if is_api:
+                # form.errors.as_json() produz uma string JSON; convertê-la em dict para resposta consistente
+                try:
+                    errors = json.loads(form.errors.as_json())
+                except Exception:
+                    # fallback simples
+                    errors = {k: list(v) for k, v in form.errors.items()}
+                return JsonResponse({'success': False, 'errors': errors}, status=400)
+
             messages.error(request, 'Erro ao cadastrar usuário. Verifique os dados e tente novamente.')
     else:
         form = UsuarioForm()
+
     return render(request, 'usuario_cadastrar.html', {'form': form})
 
 @login_required
